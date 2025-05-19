@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendimiento Académico - Alumno 347828 (GRCM)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3; /* Azul oscuro corporativo */
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+            font-size: 1.8em; /* Ajustado para el título del grado */
+            background-color: #007bff; /* Azul primario de la cabecera de las imágenes */
+            color: white;
+            padding: 15px;
+            border-radius: 5px 5px 0 0;
+        }
+        h2 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        h3 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #17a2b8; /* Cian/Teal */
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 750px;
+            margin: 30px auto;
+            padding: 15px;
+            background-color: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        .student-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #495057; /* Gris oscuro */
+            padding: 10px;
+            background-color: #e9ecef; /* Fondo claro para info del alumno */
+            border-radius: 0 0 5px 5px;
+            margin-top: -1px; /* Para que se una bien con el h1 */
+        }
+        .grades-table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        table.grades {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em; /* Un poco más pequeño para acomodar columnas */
+            background-color: #f8f9fa; /* Fondo claro para la tabla, como en las imágenes */
+        }
+        table.grades th, table.grades td {
+            border: 1px solid #dee2e6; /* Borde más sutil */
+            padding: 8px 10px;
+            text-align: left;
+        }
+        table.grades th {
+            background-color: #e9ecef; /* Color de cabecera de tabla de las imágenes */
+            color: #212529; /* Texto oscuro para cabecera */
+            font-weight: bold;
+        }
+        /* Alineación específica para columnas numéricas */
+        table.grades td:nth-child(1), /* Código */
+        table.grades td:nth-child(4), /* Créditos */
+        table.grades td:nth-child(5), /* Convocatoria */
+        table.grades td:nth-child(6) { /* Calificación */
+            text-align: center;
+        }
+        .year-summary {
+            margin: 30px auto;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 5px solid #007bff;
+            border-radius: 5px;
+            max-width: 500px;
+        }
+        .year-summary p {
+            font-size: 1.05em;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .year-summary strong {
+            color: #0056b3;
+        }
+        .year-header-row td {
+            background-color: #007bff !important;
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: center !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="degreeName"></h1> <!-- Se llenará con JS -->
+        <p class="student-info">
+            <strong>Alumno:</strong> <span id="studentId"></span>
+        </p>
+
+        <!-- SECCIÓN DE RESUMEN DE RENDIMIENTO ANUAL -->
+        <section id="annualPerformanceSummary">
+            <h2>Resumen de Rendimiento Anual</h2>
+            <!-- Contenido se generará por JS -->
+        </section>
+
+        <!-- GRÁFICO 1: EVOLUCIÓN DEL PROMEDIO ANUAL -->
+        <h2>Evolución del Promedio Anual (Media)</h2>
+        <div class="chart-container">
+            <canvas id="annualAverageChart"></canvas>
+        </div>
+
+        <!-- GRÁFICO 2: CALIFICACIONES POR ASIGNATURA -->
+        <h2>Calificaciones por Asignatura</h2>
+        <div class="chart-container" style="height: 400px;"> <!-- Dar más altura si hay muchas asignaturas -->
+            <canvas id="subjectGradesChart"></canvas>
+        </div>
+
+
+        <!-- TABLA DE BOLETÍN DE NOTAS -->
+        <section class="grades-table-container">
+            <h2>Boletín de Notas Detallado</h2>
+            <table class="grades" id="gradesTable">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Asignatura</th>
+                        <th>Año Académico</th>
+                        <th>Créditos</th>
+                        <th>Convocatoria</th>
+                        <th>Calificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Las filas de la tabla se insertarán aquí por JS -->
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+
+    <script>
+        const studentData = {
+            "alumno": {
+                "id": "347828",
+                "grado": "Grado en Gestión Comercial y Marketing (GRCM)",
+                "años": [
+                    {
+                        "añoCurso": 2,
+                        "añoAcademicoLabel": "23-24/A",
+                        "mediaAnual": 7.6,
+                        "ponderadaAnual": 7.6,
+                        "asignaturas": [
+                            { "codigo": "1963157", "nombre": "Dirección de la Innovación y la Calidad", "creditos": 6.0, "convocatoria": 1, "calificacion": 7.8 },
+                            { "codigo": "1963154", "nombre": "Dirección de Recursos Humanos", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.0 },
+                            { "codigo": "1963153", "nombre": "Economía Española", "creditos": 6.0, "convocatoria": 1, "calificacion": 7.0 },
+                            { "codigo": "1963156", "nombre": "Introducción a la Estadística", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.5 },
+                            { "codigo": "1963155", "nombre": "Planificación Contable", "creditos": 6.0, "convocatoria": 1, "calificacion": 6.5 },
+                            { "codigo": "1963158", "nombre": "Análisis Financiero", "creditos": 6.0, "convocatoria": 1, "calificacion": 7.1 },
+                            { "codigo": "1963160", "nombre": "Análisis y Gestión de Clientes", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.7 },
+                            { "codigo": "1963162", "nombre": "Comunicación Comercial", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.1 },
+                            { "codigo": "1963161", "nombre": "Econometría", "creditos": 6.0, "convocatoria": 1, "calificacion": 6.3 },
+                            { "codigo": "1963159", "nombre": "Gestión de Productos y Precios", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.0 }
+                        ]
+                    },
+                    {
+                        "añoCurso": 3,
+                        "añoAcademicoLabel": "24-25/A",
+                        "mediaAnual": 8.3,
+                        "ponderadaAnual": 8.3,
+                        "asignaturas": [
+                            { "codigo": "1963163", "nombre": "Canales y Distribución Comercial", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.2 },
+                            { "codigo": "1963166", "nombre": "Creación de Empresas", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.3 },
+                            { "codigo": "1963164", "nombre": "Gestión de Proyectos", "creditos": 6.0, "convocatoria": 1, "calificacion": 9.0 },
+                            { "codigo": "1963165", "nombre": "Investigación de Mercados", "creditos": 6.0, "convocatoria": 1, "calificacion": 7.5 },
+                            { "codigo": "1963167", "nombre": "Técnicas de Negociación", "creditos": 6.0, "convocatoria": 1, "calificacion": 8.8 }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('degreeName').textContent = studentData.alumno.grado;
+            document.getElementById('studentId').textContent = studentData.alumno.id;
+
+            // --- RESUMEN DE RENDIMIENTO ANUAL ---
+            const annualPerfSummaryDiv = document.getElementById('annualPerformanceSummary');
+            studentData.alumno.años.forEach(año => {
+                const yearDiv = document.createElement('div');
+                yearDiv.className = 'year-summary';
+                yearDiv.innerHTML = `
+                    <h3>${año.añoCurso}º Curso (${año.añoAcademicoLabel})</h3>
+                    <p><span>Media:</span> <strong>${año.mediaAnual.toFixed(1)}</strong></p>
+                    <p><span>Ponderada*:</span> <strong>${año.ponderadaAnual.toFixed(1)}</strong></p>
+                `;
+                annualPerfSummaryDiv.appendChild(yearDiv);
+            });
+
+            // --- GRÁFICO 1: EVOLUCIÓN DEL PROMEDIO ANUAL ---
+            const annualLabels = studentData.alumno.años.map(a => `${a.añoCurso}º Curso (${a.añoAcademicoLabel})`);
+            const annualAverages = studentData.alumno.años.map(a => a.mediaAnual);
+
+            new Chart(document.getElementById('annualAverageChart'), {
+                type: 'bar',
+                data: {
+                    labels: annualLabels,
+                    datasets: [{
+                        label: 'Media Anual',
+                        data: annualAverages,
+                        backgroundColor: ['rgba(255, 159, 64, 0.7)', 'rgba(75, 192, 192, 0.7)'],
+                        borderColor: ['rgb(255, 159, 64)', 'rgb(75, 192, 192)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: { y: { beginAtZero: false, suggestedMin: 5, suggestedMax: 10 } },
+                     plugins: { legend: { display: false } } // Leyenda no tan necesaria para un solo dataset
+                }
+            });
+
+            // --- GRÁFICO 2: CALIFICACIONES POR ASIGNATURA ---
+            const subjectLabels = [];
+            const subjectGrades = [];
+            const backgroundColors = [];
+            const borderColors = [];
+            
+            const yearColors = [
+                { bg: 'rgba(255, 159, 64, 0.5)', border: 'rgb(255, 159, 64)' }, // Color para 2º año
+                { bg: 'rgba(75, 192, 192, 0.5)', border: 'rgb(75, 192, 192)' }   // Color para 3º año
+            ];
+
+            studentData.alumno.años.forEach((año, index) => {
+                año.asignaturas.forEach(asig => {
+                    subjectLabels.push(`${asig.nombre} (${año.añoCurso}º)`);
+                    subjectGrades.push(asig.calificacion);
+                    backgroundColors.push(yearColors[index % yearColors.length].bg);
+                    borderColors.push(yearColors[index % yearColors.length].border);
+                });
+            });
+
+            new Chart(document.getElementById('subjectGradesChart'), {
+                type: 'bar',
+                data: {
+                    labels: subjectLabels,
+                    datasets: [{
+                        label: 'Calificación',
+                        data: subjectGrades,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Barras horizontales para mejor legibilidad de nombres largos
+                    responsive: true,
+                    maintainAspectRatio: false, // Permitir que el gráfico ajuste su altura
+                    scales: { x: { beginAtZero: false, suggestedMin: 4, suggestedMax: 10 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+
+            // --- TABLA DE BOLETÍN DE NOTAS ---
+            const tableBody = document.getElementById('gradesTable').getElementsByTagName('tbody')[0];
+            studentData.alumno.años.forEach(añoData => {
+                let yearHeaderRow = tableBody.insertRow();
+                yearHeaderRow.className = 'year-header-row';
+                let yearHeaderCell = yearHeaderRow.insertCell();
+                yearHeaderCell.colSpan = 6; // Abarca todas las columnas
+                yearHeaderCell.textContent = `${añoData.añoCurso}º Curso - Año Académico ${añoData.añoAcademicoLabel}`;
+
+                añoData.asignaturas.forEach(asignatura => {
+                    let row = tableBody.insertRow();
+                    row.insertCell().textContent = asignatura.codigo;
+                    row.insertCell().textContent = asignatura.nombre;
+                    row.insertCell().textContent = añoData.añoAcademicoLabel; // Ya está en el año, pero lo mantenemos por la estructura de la imagen
+                    row.insertCell().textContent = asignatura.creditos.toFixed(1);
+                    row.insertCell().textContent = asignatura.convocatoria;
+                    row.insertCell().textContent = asignatura.calificacion.toFixed(1);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
